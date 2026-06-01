@@ -26,6 +26,8 @@ model Expense {
   date       DateTime
   categoryId String
   category   ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  goalId     String?
+  goal       Goal?           @relation(fields: [goalId], references: [id])
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 }
@@ -33,6 +35,8 @@ model Expense {
 model JournalEntry {
   id        String   @id @default(uuid())
   content   String
+  goalId    String?
+  goal      Goal?    @relation(fields: [goalId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -41,6 +45,8 @@ model Habit {
   id        String     @id @default(uuid())
   name      String
   color     String
+  goalId    String?
+  goal      Goal?      @relation(fields: [goalId], references: [id])
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   logs      HabitLog[]
@@ -53,4 +59,104 @@ model HabitLog {
   completedAt DateTime @default(now())
 
   @@index([habitId, completedAt])
+}
+
+model Profile {
+  id            String   @id @default(uuid())
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastActiveDate DateTime?
+  lifeScore     Float    @default(50.0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  icon        String
+  criteria    String
+  points      Int      @default(100)
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+  
+  @@unique([achievementId])
+}
+
+model Mission {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  type        String
+  xpReward    Int
+  createdAt   DateTime     @default(now())
+  logs        MissionLog[]
+}
+
+model MissionLog {
+  id          String   @id @default(uuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  domain      String
+  progress    Int      @default(0)
+  targetDate  DateTime?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  expenses    Expense[]
+  journals    JournalEntry[]
+  habits      Habit[]
+  decks       Deck[]
+}
+
+model LifeScoreLog {
+  id        String   @id @default(uuid())
+  score     Float
+  date      DateTime @default(now())
+}
+
+model Deck {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  color       String   @default("var(--primary)")
+  goalId      String?
+  goal        Goal?    @relation(fields: [goalId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cards       Flashcard[]
+}
+
+model Flashcard {
+  id          String   @id @default(uuid())
+  front       String
+  back        String
+  deckId      String
+  deck        Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  
+  // Spaced Repetition Data (SM-2 Algorithm)
+  interval    Int      @default(0)   
+  repetition  Int      @default(0)   
+  easeFactor  Float    @default(2.5) 
+  nextReview  DateTime @default(now())
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

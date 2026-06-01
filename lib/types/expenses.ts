@@ -21,6 +21,7 @@ export type ExpenseWithCategory = {
   note: string | null;
   date: Date;
   categoryId: string;
+  goalId: string | null;
   createdAt: Date;
   updatedAt: Date;
   category: ExpenseCategory;

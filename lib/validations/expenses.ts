@@ -14,11 +14,17 @@ export const createExpenseSchema = z.object({
   // Form submits a YYYY-MM-DD string; coerce to Date on the server
   date: z.coerce.date({ error: "Valid date is required" }),
   categoryId: z.string().uuid({ message: "Please select a category" }),
+  goalId: z.string().uuid().optional().or(z.literal("")),
 });
 
 export const deleteExpenseSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const updateExpenseSchema = createExpenseSchema.extend({
+  id: z.string().uuid(),
+});
+
 export type CreateExpenseInput = z.infer<typeof createExpenseSchema>;
 export type DeleteExpenseInput = z.infer<typeof deleteExpenseSchema>;
+export type UpdateExpenseInput = z.infer<typeof updateExpenseSchema>;

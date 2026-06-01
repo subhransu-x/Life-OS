@@ -1,45 +1,35 @@
-import { getExpenses, getExpenseCategories } from "@/lib/queries/expenses";
-import { ExpenseForm } from "@/components/expenses/expense-form";
-import { ExpenseList } from "@/components/expenses/expense-list";
-import type { ExpenseWithCategory } from "@/lib/types/expenses";
+import { getExpenses, getExpenseCategories, getExpenseStats, getCategoryBreakdown } from "@/lib/queries/expenses";
+import { getGoals } from "@/lib/queries/goals";
+import { ExpensesPageContent } from "@/components/expenses/expenses-page-content";
+import { ExpenseStats } from "@/components/expenses/expense-stats";
+import { ExpenseCategoryBar } from "@/components/expenses/expense-category-bar";
+import { PageHeader } from "@/components/layout/page-header";
 
-export const metadata = {
-  title: "Expenses | Life OS",
-  description: "Track and manage your daily expenses.",
-};
+export const dynamic = "force-dynamic";
 
 export default async function ExpensesPage() {
-  const rawExpenses = await getExpenses();
-  const categories = await getExpenseCategories();
-
-  // Serialize Prisma Decimal → number before passing to Client Components
-  const expenses: ExpenseWithCategory[] = rawExpenses.map((exp) => ({
-    ...exp,
-    amount: Number(exp.amount),
-  }));
+  const [expenses, categories, stats, breakdown, goals] = await Promise.all([
+    getExpenses(),
+    getExpenseCategories(),
+    getExpenseStats(),
+    getCategoryBreakdown(),
+    getGoals()
+  ]);
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage and track your expenses.
-        </p>
+    <div className="max-w-4xl mx-auto p-4 md:p-8 lg:p-10 space-y-8">
+      <PageHeader
+        title="Money"
+        description="Track and understand your spending"
+      />
+
+      {/* Top Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ExpenseStats {...stats} />
+        <ExpenseCategoryBar breakdown={breakdown} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
-        {/* Expense history — left column on desktop */}
-        <div className="space-y-4 order-2 lg:order-1">
-          <h2 className="text-xl font-semibold">History</h2>
-          <ExpenseList expenses={expenses} />
-        </div>
-
-        {/* Add expense form — right column on desktop, top on mobile */}
-        <div className="space-y-4 order-1 lg:order-2">
-          <h2 className="text-xl font-semibold">Add Expense</h2>
-          <ExpenseForm categories={categories} />
-        </div>
-      </div>
+      <ExpensesPageContent expenses={expenses} categories={categories} goals={goals} />
     </div>
   );
 }

@@ -2,9 +2,11 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { createHabitSchema, deleteHabitSchema, toggleHabitSchema } from "@/lib/validations/habits";
+import { createHabitSchema, deleteHabitSchema, toggleHabitSchema, updateHabitSchema } from "@/lib/validations/habits";
+import { addXP } from "@/lib/queries/gamification";
+import { runProgressionUpdate } from "@/lib/queries/progression";
 
-export async function createHabit(formData: { name: string; color: string }) {
+export async function createHabit(formData: { name: string; color: string; goalId?: string }) {
   const result = createHabitSchema.safeParse(formData);
 
   if (!result.success) {
@@ -17,6 +19,7 @@ export async function createHabit(formData: { name: string; color: string }) {
     data: {
       name: result.data.name,
       color: result.data.color,
+      goalId: result.data.goalId || null,
     },
   });
 
@@ -52,6 +55,12 @@ export async function toggleHabitCompletion(id: string, completed: boolean, logI
         habitId: result.data.id,
       },
     });
+    
+    // Award XP
+    await addXP(10);
+    
+    // Update progression systems
+    await runProgressionUpdate("habit");
   } else if (logId) {
     // Remove the specific log
     await db.habitLog.delete({
@@ -73,4 +82,27 @@ export async function toggleHabitCompletion(id: string, completed: boolean, logI
   }
 
   revalidatePath("/habits");
+}
+
+export async function updateHabit(id: string, formData: { name: string; color: string; goalId?: string }) {
+  const result = updateHabitSchema.safeParse({ id, ...formData });
+
+  if (!result.success) {
+    throw new Error(
+      result.error.issues.map((e: { message: string }) => e.message).join(", ")
+    );
+  }
+
+  const habit = await db.habit.update({
+    where: { id: result.data.id },
+    data: {
+      name: result.data.name,
+      color: result.data.color,
+      goalId: result.data.goalId || null,
+    },
+  });
+
+  revalidatePath("/habits");
+  revalidatePath("/goals/[id]", "page");
+  return habit;
 }
