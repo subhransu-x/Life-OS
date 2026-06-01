@@ -10,3 +10,9 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model TestConnection {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  message   String
+}
