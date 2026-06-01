@@ -1,8 +1,6 @@
 import { getExpenses, getExpenseCategories, getExpenseStats, getCategoryBreakdown } from "@/lib/queries/expenses";
 import { getGoals } from "@/lib/queries/goals";
-import { ExpensesPageContent } from "@/components/expenses/expenses-page-content";
-import { ExpenseStats } from "@/components/expenses/expense-stats";
-import { ExpenseCategoryBar } from "@/components/expenses/expense-category-bar";
+import { MoneyOsWrapper } from "@/components/expenses/money-os-wrapper";
 import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
@@ -23,13 +21,13 @@ export default async function ExpensesPage() {
         description="Track and understand your spending"
       />
 
-      {/* Top Insights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ExpenseStats {...stats} />
-        <ExpenseCategoryBar breakdown={breakdown} />
-      </div>
-
-      <ExpensesPageContent expenses={expenses} categories={categories} goals={goals} />
+      <MoneyOsWrapper
+        expenses={expenses}
+        categories={categories}
+        stats={stats}
+        breakdown={breakdown}
+        goals={goals}
+      />
     </div>
   );
 }

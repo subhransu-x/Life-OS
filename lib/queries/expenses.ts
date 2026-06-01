@@ -36,6 +36,7 @@ export async function getExpenseStats() {
 
   const expenses = await db.expense.findMany({
     where: { date: { gte: startOfMonth } },
+    include: { category: true }
   });
 
   const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
@@ -43,7 +44,17 @@ export async function getExpenseStats() {
   const today = new Date().getDate();
   const avgPerDay = total / today;
 
-  return { total, count, avgPerDay };
+  let largestCategory = null;
+  if (expenses.length > 0) {
+    const categoryTotals = expenses.reduce((acc, exp) => {
+      acc[exp.category.name] = (acc[exp.category.name] || 0) + Number(exp.amount);
+      return acc;
+    }, {} as Record<string, number>);
+    
+    largestCategory = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b);
+  }
+
+  return { total, count, avgPerDay, largestCategory };
 }
 
 export async function getCategoryBreakdown() {
@@ -67,12 +78,14 @@ export async function getCategoryBreakdown() {
         name: exp.category.name,
         color: exp.category.color,
         amount: 0,
-        percentage: 0
+        percentage: 0,
+        transactionCount: 0
       };
     }
     acc[exp.categoryId].amount += amount;
+    acc[exp.categoryId].transactionCount += 1;
     return acc;
-  }, {} as Record<string, { id: string, name: string, color: string, amount: number, percentage: number }>);
+  }, {} as Record<string, { id: string, name: string, color: string, amount: number, percentage: number, transactionCount: number }>);
 
   return Object.values(breakdown)
     .map(c => ({ ...c, percentage: Math.round((c.amount / total) * 100) }))
