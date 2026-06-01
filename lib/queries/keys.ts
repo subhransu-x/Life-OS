@@ -12,5 +12,10 @@
  * }
  */
 export const QUERY_KEYS = {
-  // To be populated in Build C (Expenses), Build D (Journal), and Build E (Habits)
+  expenses: {
+    all: ["expenses"] as const,
+    list: () => [...QUERY_KEYS.expenses.all, "list"] as const,
+    detail: (id: string) => [...QUERY_KEYS.expenses.all, "detail", id] as const,
+    categories: () => [...QUERY_KEYS.expenses.all, "categories"] as const,
+  },
 } as const;

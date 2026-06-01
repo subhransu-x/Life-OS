@@ -2,20 +2,20 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import { createExpenseSchema } from "@/lib/validations/expenses";
 
-const expenseSchema = z.object({
-  amount: z.number().positive(),
-  note: z.string().optional(),
-  date: z.coerce.date(),
-  categoryId: z.string().uuid(),
-});
-
-export async function createExpense(formData: z.infer<typeof expenseSchema>) {
-  const result = expenseSchema.safeParse(formData);
+export async function createExpense(formData: {
+  amount: number;
+  note?: string;
+  date: Date;
+  categoryId: string;
+}) {
+  const result = createExpenseSchema.safeParse(formData);
 
   if (!result.success) {
-    throw new Error("Invalid expense data");
+    throw new Error(
+      result.error.issues.map((e: { message: string }) => e.message).join(", ")
+    );
   }
 
   const expense = await db.expense.create({
