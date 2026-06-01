@@ -7,6 +7,10 @@ import { PageHeader } from "@/components/layout/page-header";
 
 export const dynamic = "force-dynamic";
 
+interface HabitWithLogsCount {
+  logs: { id: string }[];
+}
+
 export default async function HabitsPage() {
   const [habits, streaks, weeklyGrid, goals] = await Promise.all([
     getHabits(),
@@ -16,7 +20,7 @@ export default async function HabitsPage() {
   ]);
 
   const total = habits.length;
-  const completed = habits.filter(h => h.logs.length > 0).length;
+  const completed = habits.filter((h: HabitWithLogsCount) => h.logs.length > 0).length;
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 lg:p-10 space-y-8">
