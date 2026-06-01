@@ -36,3 +36,21 @@ model JournalEntry {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Habit {
+  id        String     @id @default(uuid())
+  name      String
+  color     String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  logs      HabitLog[]
+}
+
+model HabitLog {
+  id          String   @id @default(uuid())
+  habitId     String
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now())
+
+  @@index([habitId, completedAt])
+}
