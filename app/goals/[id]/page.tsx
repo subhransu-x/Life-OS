@@ -5,6 +5,26 @@ import { ChevronLeft, Calendar, Hammer, Wallet, BookOpen } from "lucide-react";
 import { getGoalById } from "@/lib/queries/goals";
 import { GoalProgressUpdater } from "@/components/goals/goal-progress-updater";
 
+interface HabitWithLogs {
+  id: string;
+  name: string;
+  color: string;
+  logs: { id: string }[];
+}
+
+interface JournalEntryType {
+  id: string;
+  content: string;
+  createdAt: Date;
+}
+
+interface ExpenseWithCategory {
+  id: string;
+  amount: { toString: () => string };
+  note: string | null;
+  category: { name: string };
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function GoalDetailPage({ params }: { params: { id: string } }) {
@@ -71,7 +91,7 @@ export default async function GoalDetailPage({ params }: { params: { id: string 
             {goal.habits.length === 0 ? (
               <p className="text-sm text-muted-foreground">No habits linked yet.</p>
             ) : (
-              goal.habits.map((h: any) => (
+              goal.habits.map((h: HabitWithLogs) => (
                 <div key={h.id} className="p-3 bg-card rounded-lg border border-border/50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: h.color }} />
@@ -95,7 +115,7 @@ export default async function GoalDetailPage({ params }: { params: { id: string 
               {goal.journals.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No journals linked yet.</p>
               ) : (
-                goal.journals.slice(0, 3).map((j: any) => (
+                goal.journals.slice(0, 3).map((j: JournalEntryType) => (
                   <div key={j.id} className="p-3 bg-card rounded-lg border border-border/50">
                     <p className="text-sm text-foreground line-clamp-2 font-serif">{j.content}</p>
                     <p className="text-xs text-muted-foreground mt-2">{format(new Date(j.createdAt), "MMM d")}</p>
@@ -114,7 +134,7 @@ export default async function GoalDetailPage({ params }: { params: { id: string 
               {goal.expenses.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No expenses linked yet.</p>
               ) : (
-                goal.expenses.slice(0, 3).map((e: any) => (
+                goal.expenses.slice(0, 3).map((e: ExpenseWithCategory) => (
                   <div key={e.id} className="p-3 bg-card rounded-lg border border-border/50 flex justify-between items-center">
                     <div>
                       <p className="text-sm font-medium">{e.category.name}</p>
